@@ -3,8 +3,9 @@ LOCAL_PATH := $(call my-dir)
 # Make a static library for clearsilver's regex. This prevents multiple
 # symbol definition error.
 include $(CLEAR_VARS)
-LOCAL_SRC_FILES := ../clearsilver/util/regex/regex.c
-LOCAL_MODULE := libclearsilverregex
+LOCAL_CFLAGS := -Os
+LOCAL_SRC_FILES := ../../../external/clearsilver/util/regex/regex.c
+LOCAL_MODULE := libsteam_clearsilverregex
 LOCAL_C_INCLUDES := \
 	external/clearsilver \
 	external/clearsilver/util/regex
@@ -17,16 +18,14 @@ KERNEL_MODULES_DIR?=/system/modules/lib/modules
 BUSYBOX_SRC_FILES = $(shell cat $(LOCAL_PATH)/busybox-$(BUSYBOX_CONFIG).sources) \
 	libbb/android.c
 
-ifeq ($(strip $(CYANOGEN_BIONIC)),true)
-    ifeq ($(TARGET_ARCH),arm)
-      BUSYBOX_SRC_FILES += \
-        android/libc/arch-arm/syscalls/adjtimex.S \
-        android/libc/arch-arm/syscalls/getsid.S \
-        android/libc/arch-arm/syscalls/stime.S \
-        android/libc/arch-arm/syscalls/swapon.S \
-        android/libc/arch-arm/syscalls/swapoff.S \
-        android/libc/arch-arm/syscalls/sysinfo.S
-    endif
+ifeq ($(TARGET_ARCH),arm)
+  BUSYBOX_SRC_FILES += \
+    android/libc/arch-arm/syscalls/adjtimex.S \
+    android/libc/arch-arm/syscalls/getsid.S \
+    android/libc/arch-arm/syscalls/stime.S \
+    android/libc/arch-arm/syscalls/swapon.S \
+    android/libc/arch-arm/syscalls/swapoff.S \
+    android/libc/arch-arm/syscalls/sysinfo.S
 endif
 
 BUSYBOX_C_INCLUDES = \
@@ -48,13 +47,14 @@ BUSYBOX_CFLAGS = \
 
 
 include $(CLEAR_VARS)
+LOCAL_CFLAGS := -Os
 BUSYBOX_CONFIG:=full
 LOCAL_SRC_FILES := $(BUSYBOX_SRC_FILES)
 LOCAL_C_INCLUDES := $(BUSYBOX_C_INCLUDES)
 LOCAL_CFLAGS := $(BUSYBOX_CFLAGS)
-LOCAL_MODULE := busybox
+LOCAL_MODULE := steam_busybox
 LOCAL_MODULE_PATH := $(TARGET_OUT_OPTIONAL_EXECUTABLES)
-LOCAL_STATIC_LIBRARIES += libclearsilverregex
+LOCAL_STATIC_LIBRARIES += libsteam_clearsilverregex
 include $(BUILD_EXECUTABLE)
 
 BUSYBOX_LINKS := $(shell cat $(LOCAL_PATH)/busybox-$(BUSYBOX_CONFIG).links)
@@ -78,17 +78,19 @@ ALL_MODULES.$(LOCAL_MODULE).INSTALLED := \
 
 # Build a static busybox for the recovery image
 include $(CLEAR_VARS)
+LOCAL_CFLAGS := -Os
 BUSYBOX_CONFIG:=minimal
 LOCAL_SRC_FILES := $(BUSYBOX_SRC_FILES)
 LOCAL_C_INCLUDES := $(BUSYBOX_C_INCLUDES)
-LOCAL_CFLAGS := -Dmain=busybox_driver $(BUSYBOX_CFLAGS)
+LOCAL_CFLAGS := -Dmain=steam_busybox_main $(BUSYBOX_CFLAGS)
 LOCAL_CFLAGS += \
   -Dgetusershell=busybox_getusershell \
   -Dsetusershell=busybox_setusershell \
   -Dendusershell=busybox_endusershell \
   -Dttyname_r=busybox_ttyname_r \
   -Dgetmntent=busybox_getmntent \
-  -Dgetmntent_r=busybox_getmntent_r
-LOCAL_MODULE := libbusybox
-LOCAL_STATIC_LIBRARIES += libclearsilverregex libcutils libc libm 
+  -Dgetmntent_r=busybox_getmntent_r \
+	-Os
+LOCAL_MODULE := libsteam_busybox
+LOCAL_STATIC_LIBRARIES += libsteam_clearsilverregex libcutils libc libm 
 include $(BUILD_STATIC_LIBRARY)
